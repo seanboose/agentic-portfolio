@@ -14,11 +14,6 @@ app.use("/api/projects", projectsRouter);
 
 // 2. Static assets — express.static calls next() on a miss, so safe before the catch-all
 app.use("/images", express.static(path.join(__dirname, "../public/images")));
-// A miss under /images is a genuinely missing asset, not a client-side route —
-// 404 here instead of falling through to the SPA catch-all below.
-app.use("/images", (req, res) => {
-  res.status(404).end();
-});
 app.use(express.static(clientDist)); // also serves index.html at "/"
 
 // 3. SPA fallback last — anything unmatched falls through to index.html;

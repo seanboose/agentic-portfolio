@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { ProjectSchema, type Project } from "@portfolio/shared";
+import type { Project } from "@portfolio/shared";
 
 async function fetchProject(id: string): Promise<Project> {
   const res = await fetch(`/api/projects/${id}`);
   if (!res.ok) throw new Error("Failed to fetch project");
-  return ProjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export function useProject(id: string) {

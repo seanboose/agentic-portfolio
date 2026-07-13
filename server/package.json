@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch -r dotenv/config src/index.ts dotenv_config_path=.env.development.local",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -14,7 +14,7 @@
     "express": "^4.21.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.10.0",
     "tsx": "^4.19.0",
     "typescript": "^5.9.0"
