@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+// Single source of truth for project-type string values — reused in the schema's
+// z.literal() calls below and in PROJECT_TYPES, so the two can't drift apart.
+const SOFTWARE_TYPE = "software";
+const ART_TYPE = "art";
+
 const BaseProjectSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -13,13 +18,13 @@ const BaseProjectSchema = z.object({
 });
 
 const SoftwareProjectSchema = BaseProjectSchema.extend({
-  type: z.literal("software"),
+  type: z.literal(SOFTWARE_TYPE),
   liveUrl: z.string().url().optional(),
   repoUrl: z.string().url().optional(),
 });
 
 const ArtProjectSchema = BaseProjectSchema.extend({
-  type: z.literal("art"),
+  type: z.literal(ART_TYPE),
 });
 
 export const ProjectSchema = z.discriminatedUnion("type", [
@@ -44,11 +49,12 @@ export const ProjectsSchema = z.array(ProjectSchema).superRefine((projects, ctx)
 
 export type Project = z.infer<typeof ProjectSchema>;
 
-// Derived from the schema's own type literals, not hand-duplicated — a new
-// project type added to the discriminated union above shows up here for free.
+// Reuses the same constants passed into z.literal() above, checked against the
+// schema's own inferred type — a new project type added to the discriminated
+// union without a matching PROJECT_TYPES entry fails to compile.
 export const PROJECT_TYPES = {
-  software: "software",
-  art: "art",
+  [SOFTWARE_TYPE]: SOFTWARE_TYPE,
+  [ART_TYPE]: ART_TYPE,
 } as const satisfies Record<Project["type"], Project["type"]>;
 
 export type ProjectType = Project["type"];

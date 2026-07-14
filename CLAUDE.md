@@ -83,13 +83,28 @@ before either consumer, in dev and prod alike.
 
 ## Environment variables
 
-- `.env` — committed, non-secret (currently just `PORT=4000`).
+Three tiers, cascaded in dev (first value wins, per dotenv's `path` array
+semantics), collapsed to just `.env` in production:
+
+- `.env` — committed, production-safe values (currently just `PORT=4000`). Always
+  loads, dev and prod alike.
+- `.env.development` — committed, non-secret dev-only overrides. Empty today. Exists
+  on disk in production too (Render deploys the full repo), so it must never load
+  there — see below.
 - `.env.development.local` — gitignored (`*.local`), for dev-only secrets. Empty
   today; no secrets exist yet in this app (no DB, no API keys, no auth).
 - `.env.example` — committed template documenting the shape of `.local`.
-- `server/src/index.ts` loads env via `dotenv/config`. In production, Render
-  injects real env vars (including `PORT`) directly — there's no `.env` file to
-  load there, dotenv's load is effectively a dev-only concern.
+- `server/src/index.ts` loads env via `dotenv`'s `config({ path: [...] })`, gated on
+  `process.env.NODE_ENV === "development"`: dev cascades all three tiers
+  (`.env.development.local` → `.env.development` → `.env`), everything else loads
+  only `.env`. This gate exists specifically because `.env.development` is committed
+  and would otherwise load in production too, silently shadowing Render's injected
+  env vars for any overlapping key. `NODE_ENV=development` is set explicitly in
+  `server`'s `dev` script (not assumed from the shell), so the gate doesn't depend on
+  an ambient env var some machines might not have set.
+- Paths are resolved against the repo root via `path.join(__dirname, "../..")`, not
+  `process.cwd()` — `npm run dev -w server` runs with cwd set to `server/`, not the
+  repo root where these files live, so a bare relative path would silently miss them.
 - Production secrets: added manually in Render's dashboard when a real secret
   exists. Nothing to automate here.
 
