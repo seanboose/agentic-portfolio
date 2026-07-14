@@ -22,7 +22,16 @@ enforcing unique `id`s across the array — ids double as URL slugs
 (`/projects/:id`), so a duplicate would cause silent, hard-to-debug lookup bugs
 (`Array.find` just returns whichever one comes first).
 
-**Validation runs once at server startup**, not per-request — `loadProjects.ts`
+`shared/src/project.ts` also exports `PROJECT_TYPES` (`{ software: "software", art:
+"art" }`) and `ProjectType`, both derived from the schema's own `z.literal` values via
+a `satisfies Record<Project["type"], Project["type"]>` check — adding a new type to
+the discriminated union without updating `PROJECT_TYPES` fails to compile. Client code
+that branches on project type (e.g. `ProjectDetail.tsx` gating `liveUrl`/`repoUrl`)
+should reference `PROJECT_TYPES.software`/`PROJECT_TYPES.art`, not the bare string
+literals, for the same reason the `Project` type itself is derived rather than
+hand-written.
+
+**Validation runs once at server startup**, not per-request — `server/src/data/projects.ts`
 calls `ProjectsSchema.parse()` at import time. `projects.json` is static file
 content, not user input, so re-validating per-request would be wasted work. A
 schema violation crashes the server immediately with a specific Zod error (which
@@ -66,8 +75,8 @@ before either consumer, in dev and prod alike.
   "module"` on `shared`/`server` made `tsc` default to CommonJS output, which broke
   on `import.meta.url` (used for `__dirname` in `server/src/index.ts`) and on JSON
   import attributes (`import raw from "./projects.json" with { type: "json" }` in
-  `loadProjects.ts`). If either package's `package.json` loses `"type": "module"`
-  again, expect the same class of build failure.
+  `server/src/data/projects.ts`). If either package's `package.json` loses `"type":
+  "module"` again, expect the same class of build failure.
 - `dist/` (all three packages) and `*.tsbuildinfo` are gitignored — generated
   output, not checked in. Every consumer of the compiled output is a script in this
   same repo that can always rebuild it, so committing it would just risk drift.
@@ -103,10 +112,10 @@ this stack.
 
 **Not yet implemented:** server-level integration tests (e.g. via `supertest`
 against the Express app — `GET /api/projects`, `GET /api/projects/:id` including
-the 404 path, `loadProjects` throwing on malformed data). This was discussed as a
-direction worth pursuing but isn't built yet — `server` currently has zero test
-files. If picked up later, keep it consistent with the rest of the stack: Vitest,
-not Jest.
+the 404 path, `server/src/data/projects.ts` throwing on malformed data). This was
+discussed as a direction worth pursuing but isn't built yet — `server` currently has
+zero test files. If picked up later, keep it consistent with the rest of the stack:
+Vitest, not Jest.
 
 **Playwright** — `e2e/`, a separate workspace (tests the client/server seam, not
 owned by either). Runs against a **full production build**, not dev mode —
@@ -143,6 +152,22 @@ per-machine step** (`npm run test:e2e:setup -w e2e`), not wired into
 - **If a review pass does auto-apply fixes**, treat that as its own diff to review
   in isolation (diff against the prior commit specifically), not folded into the
   overall cumulative change.
+- **PR review loop:** implementer commits and pushes (after the reviewer sanity-checks
+  locally) → reviewer comments on GitHub → implementer addresses and pushes again →
+  repeat until the reviewer is satisfied and merges. Prefer fewer, cohesive commits
+  over one commit per review comment; call it out explicitly if a change is large or
+  risky enough that splitting into multiple commits would help review, and let the
+  reviewer decide.
+- **Reply to every open review comment thread**, not just the ones a change was made
+  for. A comment is "open" unless the reviewer has already closed it out (e.g. "sounds
+  good", "thanks", accepting the suggestion). Match the reply to what the thread needs:
+  answer questions directly, explain reasoning where asked, and for a simple accepted
+  suggestion applied with no back-and-forth, a short "changed"/"implemented" is enough
+  — don't pad it. The goal is that the thread state on GitHub always reflects current
+  reality: nothing silently applied-but-unacknowledged, nothing silently skipped.
+- **If the remote branch has commits made outside this workflow** (e.g. a suggestion
+  accepted directly in the GitHub UI), `git fetch` and check before pushing — rebase
+  onto the new tip rather than force-pushing over it.
 
 ## Git structure
 
