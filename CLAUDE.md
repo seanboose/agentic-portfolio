@@ -168,6 +168,19 @@ per-machine step** (`npm run test:e2e:setup -w e2e`), not wired into
 - **If the remote branch has commits made outside this workflow** (e.g. a suggestion
   accepted directly in the GitHub UI), `git fetch` and check before pushing — rebase
   onto the new tip rather than force-pushing over it.
+- **Post replies as one batched PR review, not disparate single comments.** A reply
+  posted via a standalone comment call inherits its parent thread's original anchor
+  commit, which goes stale as the PR gains more commits — GitHub's "Files changed" tab
+  only renders a comment inline when its anchor commit falls within the diff range
+  currently selected there, so replies anchored to an old commit can go invisible in
+  that view even though they're correctly threaded (and visible, in order) in the
+  Conversation tab. Fix: batch all comments/replies for a pass into a single PR review
+  submitted against the current HEAD SHA, so everything in that batch shares one
+  up-to-date anchor. Reserve one-off single-comment calls for isolated cases (e.g. one
+  new question with nothing else to batch).
+- **Thread resolution is manual.** The reviewer clicks "Resolve conversation" on
+  GitHub themselves; the implementer replies to close out a thread's content but does
+  not call the resolve-thread mutation, even after confirming a fix was applied.
 
 ## Git structure
 
