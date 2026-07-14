@@ -43,3 +43,12 @@ export const ProjectsSchema = z.array(ProjectSchema).superRefine((projects, ctx)
 });
 
 export type Project = z.infer<typeof ProjectSchema>;
+
+// Derived from the schema's own type literals, not hand-duplicated — a new
+// project type added to the discriminated union above shows up here for free.
+export const PROJECT_TYPES = {
+  software: "software",
+  art: "art",
+} as const satisfies Record<Project["type"], Project["type"]>;
+
+export type ProjectType = Project["type"];

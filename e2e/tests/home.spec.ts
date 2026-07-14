@@ -21,9 +21,11 @@ test("filter tabs narrow the grid by project type", async ({ page }) => {
 
   await page.getByRole("button", { name: "Software" }).click();
   await expect(page.locator("h3")).toHaveText(["Weather App"]);
+  await expect(page.getByText("Sunset Study")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Art" }).click();
   await expect(page.locator("h3")).toHaveText(["Sunset Study"]);
+  await expect(page.getByText("Weather App")).toHaveCount(0);
 
   await page.getByRole("button", { name: "All" }).click();
   await expect(page.locator("h3")).toHaveText(["Weather App", "Sunset Study"]);

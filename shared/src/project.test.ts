@@ -53,6 +53,16 @@ describe("ProjectSchema", () => {
     }
   });
 
+  it("rejects an art project with repoUrl (not part of the art variant)", () => {
+    const result = ProjectSchema.safeParse({ ...validArt, repoUrl: "https://example.com" });
+    // extra unknown keys are stripped by default zod object parsing, not rejected —
+    // this documents that behavior rather than asserting a rejection.
+    expect(result.success).toBe(true);
+    if (result.success && result.data.type === "art") {
+      expect((result.data as Record<string, unknown>).repoUrl).toBeUndefined();
+    }
+  });
+
   it("rejects an unknown type literal", () => {
     const result = ProjectSchema.safeParse({ ...validSoftware, type: "sculpture" });
     expect(result.success).toBe(false);

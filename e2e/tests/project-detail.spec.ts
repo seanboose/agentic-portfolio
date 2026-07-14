@@ -2,9 +2,11 @@ import { test, expect } from "@playwright/test";
 
 test("navigates from card to detail page", async ({ page }) => {
   await page.goto("/");
-  await page.locator("a[href^='/projects/']").first().click();
+  const card = page.locator("a[href='/projects/weather-app']");
+  const cardTitle = await card.locator("h3").innerText();
+  await card.click();
   await expect(page).toHaveURL(/\/projects\/weather-app$/);
-  await expect(page.locator("h1")).toHaveText("Weather App");
+  await expect(page.locator("h1")).toHaveText(cardTitle);
 });
 
 test("software project shows live/repo links, art project does not", async ({ page }) => {
