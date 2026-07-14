@@ -138,7 +138,11 @@ owned by either). Runs against a **full production build**, not dev mode —
 waits on `:4000` before tests execute. This exercises the actual deployed code
 path (Express serving static `dist/`, the SPA-fallback catch-all), which is the
 higher-value thing to protect and is what most of scaffolding's manual
-verification already covered. Current coverage: cards render from the live API
+verification already covered. `NODE_ENV=development` is pinned explicitly in
+that `webServer.command` — e2e should always run against dev-safe config
+(once a real config tier with actual values exists), never whatever's
+ambient, and never production; this exercises the real prod *code path* while
+guaranteeing test-safe *config values*. Current coverage: cards render from the live API
 (not hardcoded), filter tabs narrow the grid, software/art detail pages gate
 `liveUrl`/`repoUrl` correctly, navigation works, and — the one regression this
 suite actually caught during scaffolding — a hard refresh on a client-side route
