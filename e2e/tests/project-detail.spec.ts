@@ -3,10 +3,10 @@ import { test, expect } from "@playwright/test";
 test("navigates from card to detail page", async ({ page }) => {
   await page.goto("/");
   const card = page.locator("a[href='/projects/weather-app']");
-  const cardTitle = await card.locator("h3").innerText();
+  const cardTitle = await card.getByRole("heading").innerText();
   await card.click();
   await expect(page).toHaveURL(/\/projects\/weather-app$/);
-  await expect(page.locator("h1")).toHaveText(cardTitle);
+  await expect(page.getByRole("heading", { name: cardTitle })).toBeVisible();
 });
 
 test("software project shows live/repo links, art project does not", async ({ page }) => {
@@ -21,10 +21,10 @@ test("software project shows live/repo links, art project does not", async ({ pa
 
 test("survives a hard refresh on a client-side route (SPA fallback)", async ({ page }) => {
   await page.goto("/projects/weather-app");
-  await expect(page.locator("h1")).toHaveText("Weather App");
+  await expect(page.getByRole("heading", { name: "Weather App" })).toBeVisible();
 
   await page.reload();
-  await expect(page.locator("h1")).toHaveText("Weather App");
+  await expect(page.getByRole("heading", { name: "Weather App" })).toBeVisible();
 });
 
 test("unknown project id shows a not-found state, not a crash", async ({ page }) => {
