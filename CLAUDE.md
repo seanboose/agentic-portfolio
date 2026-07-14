@@ -183,16 +183,18 @@ per-machine step** (`npm run test:e2e:setup -w e2e`), not wired into
 - **If the remote branch has commits made outside this workflow** (e.g. a suggestion
   accepted directly in the GitHub UI), `git fetch` and check before pushing — rebase
   onto the new tip rather than force-pushing over it.
-- **Post replies as one batched PR review, not disparate single comments.** A reply
-  posted via a standalone comment call inherits its parent thread's original anchor
-  commit, which goes stale as the PR gains more commits — GitHub's "Files changed" tab
-  only renders a comment inline when its anchor commit falls within the diff range
-  currently selected there, so replies anchored to an old commit can go invisible in
-  that view even though they're correctly threaded (and visible, in order) in the
-  Conversation tab. Fix: batch all comments/replies for a pass into a single PR review
-  submitted against the current HEAD SHA, so everything in that batch shares one
-  up-to-date anchor. Reserve one-off single-comment calls for isolated cases (e.g. one
-  new question with nothing else to batch).
+- **A reply to an existing thread always inherits that thread's original anchor
+  commit — there is no way to override this, batched or otherwise.** GitHub's reply
+  endpoint (`POST .../pulls/N/comments/{comment_id}/replies`) ignores every parameter
+  but `body`; the PR-review endpoint's `comments` array only accepts brand-new
+  top-level comments (`path`+`position`/`line`), not replies (`in_reply_to` isn't a
+  valid field there — confirmed via a 422). So as a PR gains commits, older threads'
+  replies can go invisible in the "Files changed" tab, since that view only renders a
+  comment inline when its anchor commit falls within the diff range currently
+  selected — even though the reply is correctly threaded (visible, in order, via
+  `in_reply_to_id`) in the Conversation tab regardless. **Read PR feedback via the
+  Conversation tab** (or a comment's `#discussion_r...` permalink), not Files Changed,
+  to avoid missing replies that rendered invisible there for this reason.
 - **Thread resolution is manual.** The reviewer clicks "Resolve conversation" on
   GitHub themselves; the implementer replies to close out a thread's content but does
   not call the resolve-thread mutation, even after confirming a fix was applied.
