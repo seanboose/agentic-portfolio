@@ -177,28 +177,43 @@ per-machine step** (`npm run test:e2e:setup -w e2e`), not wired into
   over one commit per review comment; call it out explicitly if a change is large or
   risky enough that splitting into multiple commits would help review, and let the
   reviewer decide.
+- **Reviewer posts each round as a single GitHub PR review** (one review object
+  containing all of that round's inline comments), not scattered individual comments.
+  This doesn't fix the anchoring limitation below, but it's good practice regardless
+  and gives the implementer a clean, enumerable "this round's batch" to work through.
+- **Reviewer closes a thread by commenting a literal `accepted`** (or an equally
+  unambiguous word) when no further reply is needed — whether that's approving a
+  change already made, or agreeing the existing code is fine as-is. This is an
+  explicit, machine-checkable signal, more reliable than inferring intent from
+  phrasing like "sounds good" or "thanks".
 - **Reply to every open review comment thread**, not just the ones a change was made
-  for. A comment is "open" unless the reviewer has already closed it out (e.g. "sounds
-  good", "thanks", accepting the suggestion). Match the reply to what the thread needs:
-  answer questions directly, explain reasoning where asked, and for a simple accepted
-  suggestion applied with no back-and-forth, a short "changed"/"implemented" is enough
-  — don't pad it. The goal is that the thread state on GitHub always reflects current
-  reality: nothing silently applied-but-unacknowledged, nothing silently skipped.
+  for. A thread is "open" unless the reviewer has already closed it out (`accepted` or
+  equivalent — see above). Match the reply to what the thread needs: answer questions
+  directly, explain reasoning where asked, and for a simple accepted suggestion applied
+  with no back-and-forth, a short "changed"/"implemented" is enough — don't pad it.
+- **End every pass with a scripted thread sweep, not a memory-based check.** Before
+  reporting a round done: fetch all PR review comments via the API, group into
+  threads by root comment, and flag any thread whose most recent message is *not*
+  either (a) a reply from the implementer or (b) the reviewer's own closing comment.
+  Only report the round complete once that sweep comes back clean — this is what
+  catches gaps that "I'm pretty sure I replied to everything" misses (it has, more
+  than once).
 - **If the remote branch has commits made outside this workflow** (e.g. a suggestion
   accepted directly in the GitHub UI), `git fetch` and check before pushing — rebase
   onto the new tip rather than force-pushing over it.
 - **A reply to an existing thread always inherits that thread's original anchor
-  commit — there is no way to override this, batched or otherwise.** GitHub's reply
-  endpoint (`POST .../pulls/N/comments/{comment_id}/replies`) ignores every parameter
-  but `body`; the PR-review endpoint's `comments` array only accepts brand-new
-  top-level comments (`path`+`position`/`line`), not replies (`in_reply_to` isn't a
-  valid field there — confirmed via a 422). So as a PR gains commits, older threads'
-  replies can go invisible in the "Files changed" tab, since that view only renders a
-  comment inline when its anchor commit falls within the diff range currently
-  selected — even though the reply is correctly threaded (visible, in order, via
-  `in_reply_to_id`) in the Conversation tab regardless. **Read PR feedback via the
-  Conversation tab** (or a comment's `#discussion_r...` permalink), not Files Changed,
-  to avoid missing replies that rendered invisible there for this reason.
+  commit — there is no way to override this, batched or otherwise, including via the
+  single-review convention above.** GitHub's reply endpoint
+  (`POST .../pulls/N/comments/{comment_id}/replies`) ignores every parameter but
+  `body`; the PR-review endpoint's `comments` array only accepts brand-new top-level
+  comments (`path`+`position`/`line`), not replies (`in_reply_to` isn't a valid field
+  there — confirmed via a live 422). So as a PR gains commits, older threads' replies
+  can go invisible in the "Files changed" tab, since that view only renders a comment
+  inline when its anchor commit falls within the diff range currently selected — even
+  though the reply is correctly threaded (visible, in order, via `in_reply_to_id`) in
+  the Conversation tab regardless. **Read PR feedback via the Conversation tab** (or a
+  comment's `#discussion_r...` permalink), not Files Changed, to avoid missing replies
+  that rendered invisible there for this reason.
 - **Thread resolution is manual.** The reviewer clicks "Resolve conversation" on
   GitHub themselves; the implementer replies to close out a thread's content but does
   not call the resolve-thread mutation, even after confirming a fix was applied.
