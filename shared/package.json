@@ -1,0 +1,20 @@
+{
+  "name": "@portfolio/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/project.js",
+  "types": "dist/project.d.ts",
+  "scripts": {
+    "dev": "tsc --watch --preserveWatchOutput",
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  }
+}

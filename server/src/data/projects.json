@@ -1,0 +1,28 @@
+[
+  {
+    "id": "weather-app",
+    "type": "software",
+    "title": "Weather App",
+    "tagline": "A simple weather lookup app built with React and Node.",
+    "tags": ["React", "Node", "Express"],
+    "date": "2026-03",
+    "featured": true,
+    "liveUrl": "https://example.com",
+    "repoUrl": "https://github.com/example/weather-app",
+    "thumbnail": "/images/weather-app/thumb.webp",
+    "images": ["/images/weather-app/thumb.webp"],
+    "body": "## The problem\n\nPlaceholder write-up for the weather app project."
+  },
+  {
+    "id": "sunset-study",
+    "type": "art",
+    "title": "Sunset Study",
+    "tagline": "An oil painting exploring warm color transitions at dusk.",
+    "tags": ["Oil on canvas"],
+    "date": "2026-01",
+    "featured": true,
+    "thumbnail": "/images/sunset-study/thumb.webp",
+    "images": ["/images/sunset-study/thumb.webp"],
+    "body": "## About this piece\n\nPlaceholder write-up for the sunset study painting."
+  }
+]
